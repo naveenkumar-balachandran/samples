@@ -1,12 +1,12 @@
 <div id="container">
     @if (ViewBag.IsAuthenticated)
     {
-        <iframe src='http://localhost:44383/Home/JWTLogin' width='150%' height='1300px'></iframe>
+        <iframe src='@Url.Action("JWTLogin", "Home", null, Context.Request.Scheme)' width='150%' height='1300px'></iframe>
     }
     else
     {
         <p style="margin-top: 20px">
-            Please <a asp-controller="Home" asp-action="Loginpage" asp-route-returnURL="http://localhost:44383/Home/Embed">login</a> to the application for embedding.
+            Please <a asp-controller="Home" asp-action="Loginpage" asp-route-returnURL="@Url.Action("Embed", "Home", null, Context.Request.Scheme)">login</a> to the application for embedding.
         </p>
     }
 </div>

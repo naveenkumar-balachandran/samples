@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iframefullserver-config
+  namespace: boldbi-embed
+  labels:
+    app: iframefullserver
+data:
+  # Replace these values with your Bold Reports environment details
+  # Use double-underscore to map hierarchical keys (jwt:boldbiserverurl -> jwt__boldbiserverurl)
+  AppBaseUrl: "https://embed.yourdomain.com"
+  jwt__boldbiserverurl: "https://yokogawa-testing-upgrade-site.boldbidemo.com"
+  jwt__siteidentifier: "reports1"
+  jwt__redirectto: "https://yokogawa-testing-upgrade-site.boldbidemo.com/bi/site/reports1"
+  user__userid: "1"
+  ExpirationTimeInMinutes: "120"

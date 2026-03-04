@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 
 public class Program
 {
@@ -10,6 +11,12 @@ public class Program
         ConfigureServices(builder.Services);
 
         var app = builder.Build();
+
+        // Configure forwarded headers for reverse proxy/ingress (AKS)
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        });
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
@@ -35,6 +42,7 @@ public class Program
     public static void ConfigureServices(IServiceCollection services)
     {
         services.AddControllersWithViews();
+        services.AddHttpContextAccessor(); // For dynamic URL generation
 
         services.AddAuthentication(options =>
         {
@@ -43,7 +51,10 @@ public class Program
         .AddCookie(options =>
         {
             options.Cookie.Name = "UserCookie"; //Use any name
-            options.LoginPath = "/Home/Login"; 
+            options.LoginPath = "/Home/Login";
+            // For cross-origin iframe scenarios (AKS deployment)
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
 
         services.AddAuthorization();

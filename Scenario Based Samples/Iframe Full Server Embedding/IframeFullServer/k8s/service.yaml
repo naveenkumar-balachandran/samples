@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: iframefullserver
+  namespace: boldbi-embed
+  labels:
+    app: iframefullserver
+spec:
+  type: ClusterIP
+  selector:
+    app: iframefullserver
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800

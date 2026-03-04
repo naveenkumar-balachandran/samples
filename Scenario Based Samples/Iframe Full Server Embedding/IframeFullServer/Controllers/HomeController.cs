@@ -8,9 +8,12 @@ namespace IframeFullServer.Controllers;
 public class HomeController : Controller
 {
     private readonly IConfiguration _configuration;
-    public HomeController(IConfiguration configuration)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public HomeController(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _configuration = configuration;
+        _httpContextAccessor = httpContextAccessor;
     }
     public ActionResult Index()
     {
@@ -37,7 +40,8 @@ public class HomeController : Controller
     public ActionResult Login()
     {
         var email = Request.Form["user"].ToString();
-        string redirectUrl = "http://localhost:44383/Home/Embed";
+        var baseUrl = GetBaseUrl();
+        string redirectUrl = $"{baseUrl}/Home/Embed";
         if (email != null)
         {
             var claims = new List<Claim>
@@ -95,7 +99,8 @@ public class HomeController : Controller
     public ActionResult Logout()
     {
         HttpContext.SignOutAsync("Cookies");
-        var url = _configuration["jwt:boldbiserverurl"].TrimEnd('/')+"/oauth/logout?redirect_uri=http://localhost:44383/Home/Loginpage";
+        var baseUrl = GetBaseUrl();
+        var url = _configuration["jwt:boldbiserverurl"].TrimEnd('/') + $"/oauth/logout?redirect_uri={baseUrl}/Home/Loginpage";
         return Redirect(url);
     }
 
@@ -108,6 +113,30 @@ public class HomeController : Controller
     {
         ViewBag.IsAuthenticated = HttpContext.User.Identity.IsAuthenticated;
         return View();
+    }
+
+    /// <summary>
+    /// Gets the base URL for this application.
+    /// Tries configuration first (for explicit local/AKS settings), then falls back to auto-detection.
+    /// </summary>
+    private string GetBaseUrl()
+    {
+        // Try to get from configuration first (works for both local and AKS)
+        var configuredBaseUrl = _configuration["AppBaseUrl"];
+        if (!string.IsNullOrEmpty(configuredBaseUrl))
+        {
+            return configuredBaseUrl.TrimEnd('/');
+        }
+
+        // Fallback: auto-detect from current request
+        var request = _httpContextAccessor.HttpContext?.Request;
+        if (request != null)
+        {
+            return $"{request.Scheme}://{request.Host}";
+        }
+
+        // Last resort fallback
+        return "http://localhost:44383";
     }
 
 }

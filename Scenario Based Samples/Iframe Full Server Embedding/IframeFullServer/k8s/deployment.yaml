@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iframefullserver
+  namespace: boldbi-embed
+  labels:
+    app: iframefullserver
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: iframefullserver
+  template:
+    metadata:
+      labels:
+        app: iframefullserver
+    spec:
+      containers:
+        - name: web
+          # UPDATE THIS: Replace with your ACR name
+          # Example: boldbiacr.azurecr.io/iframefullserver:1.0.0
+          image: <your-acr-name>.azurecr.io/iframefullserver:1.0.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: iframefullserver-config
+            - secretRef:
+                name: iframefullserver-secrets
+          env:
+            - name: ASPNETCORE_URLS
+              value: "http://+:8080"
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Production"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
